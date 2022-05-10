@@ -34,7 +34,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:$kotlin_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlin_coroutines_version"
 
-
     implementation 'io.arrow-kt:arrow-core:1.1.2'
 
     implementation 'io.github.microutils:kotlin-logging:2.1.21'
@@ -44,6 +43,8 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-webflux') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
+
+    implementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_version"
