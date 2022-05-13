@@ -6,7 +6,7 @@ import io.github.dnowak.jsonSchemaValidation.domain.DocumentSource
 import io.github.dnowak.jsonSchemaValidation.domain.SchemaId
 import io.github.dnowak.jsonSchemaValidation.domain.ValidateJson
 import io.github.dnowak.jsonSchemaValidation.port.repository.GetSchema
-import io.github.dnowak.jsonSchemaValidation.domain.ValidateSchema as ValidateJsonSchema
+import io.github.dnowak.jsonSchemaValidation.domain.ValidateSchema as ValidateDocument
 
 sealed interface ValidateSchemaError {
 
@@ -16,7 +16,7 @@ typealias ValidateSchema = (SchemaId, DocumentSource) -> Either<ValidateSchemaEr
 
 suspend fun validateSchema(
     validateJson: ValidateJson,
-    validateJsonSchema: ValidateJsonSchema,
+    validateDocument: ValidateDocument,
     getSchema: GetSchema,
     schemaId: SchemaId,
     documentSource: DocumentSource,

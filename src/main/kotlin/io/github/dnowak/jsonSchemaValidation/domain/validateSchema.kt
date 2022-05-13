@@ -8,15 +8,17 @@ import arrow.core.nonFatalOrThrow
 import arrow.core.right
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.fge.jsonschema.core.report.ProcessingReport
 import com.github.fge.jsonschema.main.JsonSchemaFactory
 
 sealed interface SchemaValidationError {
-    data class Invalid(val errors: List<String>): SchemaValidationError
-    data class Unknown(val message: String): SchemaValidationError
+    data class Invalid(val errors: List<String>) : SchemaValidationError
+    data class Unknown(val message: String) : SchemaValidationError
 }
 
-typealias ValidateSchema = (SchemaSource, DocumentSource) -> Effect<SchemaValidationError, Unit>
+typealias ValidateSchema = suspend (SchemaSource, DocumentSource) -> Either<SchemaValidationError, Unit>
 
 data class JsonParseError(val message: String)
 
@@ -43,6 +45,7 @@ suspend fun validateSchema(
     val documentJson = stringToJsonNode(documentSource.value)
         .mapLeft(::mapError)
         .bind()
+    cleanJsonNode(documentJson)
     val schema = factory.getJsonSchema(schemaJson)
     val report = schema.validate(documentJson)
     verify(report).bind()
@@ -53,10 +56,29 @@ private fun verify(report: ProcessingReport): Either<SchemaValidationError, Unit
         Unit.right()
     } else {
         val errors = report
-            .map { message ->  message.message }
+            .map { message -> message.asJson().toString() }
             .toList()
         SchemaValidationError.Invalid(errors).left()
     }
+
+private fun cleanJsonNode(jsonNode: JsonNode) {
+    if (jsonNode.isObject) {
+        val objectNode = jsonNode as ObjectNode
+        val names = objectNode.fieldNames().asSequence().toList()
+        names.forEach { name ->
+            val field = objectNode.get(name)
+            if (field.isNull) {
+                objectNode.remove(name)
+            } else {
+                cleanJsonNode(field)
+            }
+        }
+    }
+    if (jsonNode.isArray) {
+        val arrayNode = jsonNode as ArrayNode
+        arrayNode.forEach(::cleanJsonNode)
+    }
+}
 
 fun mapError(error: JsonParseError): SchemaValidationError = SchemaValidationError.Unknown(error.toString())
 
