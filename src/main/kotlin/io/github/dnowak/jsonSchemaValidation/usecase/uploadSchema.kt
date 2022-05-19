@@ -12,19 +12,19 @@ sealed interface SchemaUploadError {
     data class Unknown(val message: String) : SchemaUploadError
 }
 
-typealias UploadSchema = (SchemaSource) -> Either<SchemaUploadError, Unit>
+typealias UploadSchema = (Schema) -> Either<SchemaUploadError, Unit>
 
 suspend fun uploadSchema(
     validateJson: ValidateJson,
     saveSchema: SaveSchema,
     schemaId: SchemaId,
-    schemaSource: SchemaSource
+    schema: Schema
 ): Either<SchemaUploadError, Unit> = either {
-    validateJson(Json(schemaSource.value))
+    validateJson(Json(schema.value))
         .toEither()
         .mapLeft(::mapError)
         .bind()
-    saveSchema(schemaId, schemaSource)
+    saveSchema(schemaId, schema)
         .mapLeft(::mapError)
         .bind()
 }

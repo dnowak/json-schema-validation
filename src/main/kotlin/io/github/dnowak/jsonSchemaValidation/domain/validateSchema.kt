@@ -1,7 +1,6 @@
 package io.github.dnowak.jsonSchemaValidation.domain
 
 import arrow.core.Either
-import arrow.core.continuations.Effect
 import arrow.core.continuations.either
 import arrow.core.left
 import arrow.core.nonFatalOrThrow
@@ -18,7 +17,7 @@ sealed interface SchemaValidationError {
     data class Unknown(val message: String) : SchemaValidationError
 }
 
-typealias ValidateSchema = suspend (SchemaSource, DocumentSource) -> Either<SchemaValidationError, Unit>
+typealias ValidateSchema = suspend (Schema, Document) -> Either<SchemaValidationError, Unit>
 
 data class JsonParseError(val message: String)
 
@@ -35,14 +34,14 @@ fun stringToJsonNode(
 
 suspend fun validateSchema(
     stringToJsonNode: StringToJsonNode,
-    schemaSource: SchemaSource,
-    documentSource: DocumentSource
+    schema: Schema,
+    document: Document
 ): Either<SchemaValidationError, Unit> = either {
     val factory = JsonSchemaFactory.byDefault();
-    val schemaJson = stringToJsonNode(schemaSource.value)
+    val schemaJson = stringToJsonNode(schema.value)
         .mapLeft(::mapError)
         .bind()
-    val documentJson = stringToJsonNode(documentSource.value)
+    val documentJson = stringToJsonNode(document.value)
         .mapLeft(::mapError)
         .bind()
     cleanJsonNode(documentJson)
